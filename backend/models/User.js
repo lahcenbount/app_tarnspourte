@@ -7,8 +7,8 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   motDePasse: { type: String, required: true },
   role: { type: String,
-     enum: ['user', 'admin'],
-      default: 'user' },
+     enum: ['conducteur', 'expediteur', 'admin'],
+      default: 'conducteur' },
 }, { timestamps: true });
 
 // Hash du mot de passe avant sauvegarde

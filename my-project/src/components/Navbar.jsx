@@ -1,204 +1,154 @@
-import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Menu, X, Home, LogIn, UserPlus, Truck, Package, Shield, LogOut } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
 
-export default function Navbar() {
-  const { user, logout } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+export default function Navigation() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Simule un état d'authentification
+  const [user, setUser] = useState(null); // null = non connecté, ou un objet user
+
+  const navigate = useNavigate();
+
+  // Exemple : récupérer l'user depuis localStorage (ou un contexte auth)
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    // Suppression des infos user (token, etc)
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/");
+  };
+
+  // Définir les items communs
+  const navItemsCommon = [
+    { key: "HOME", label: "Accueil", icon: Home, to: "/" },
+  ];
+
+  // Items affichés quand utilisateur non connecté
+  const navItemsLoggedOut = [
+    { key: "LOGIN", label: "Connexion", icon: LogIn, to: "/login" },
+    { key: "REGISTER", label: "Inscription", icon: UserPlus, to: "/register" },
+  ];
+
+  // Items affichés quand connecté (exemple ici : tous les dashboards)
+  const navItemsLoggedIn = [
+    // { key: "DRIVER_DASHBOARD", label: "Tableau Chauffeur", icon: Truck, to: "/driver_dashboard" },
+    // { key: "SENDER_DASHBOARD", label: "Tableau Expéditeur", icon: Package, to: "/sender_dashboard" },
+    // { key: "ADMIN_DASHBOARD", label: "Tableau Admin", icon: Shield, to: "/admin-dashboard" },
+  ];
 
   return (
-    <nav className="bg-gradient-to-r from-green-600 via-green-700 to-emerald-800 shadow-lg backdrop-blur-sm">
+    <nav className="bg-white shadow-lg border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-8">
-            <Link 
-              to="/" 
-              className="text-white font-bold text-2xl hover:text-green-300 transition-all duration-300 transform hover:scale-105 relative group"
-            >
-              <span className="relative z-10">Annonces</span>
-              <div className="absolute inset-0 bg-white/10 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 ease-out"></div>
-            </Link>
-
-            {user && (
-              <div className="hidden md:flex space-x-6">
-                <Link
-                  to="/demandes"
-                  className="text-white/90 hover:text-white transition-all duration-300 py-2 px-3 rounded-lg hover:bg-white/10"
-                >
-                  Mes demandes
-                </Link>
-
-                {user.role === "admin" && (
-                  <Link
-                    to="/admin-dashboard"
-                    className="text-white/90 hover:text-white py-2 px-3 rounded-lg hover:bg-white/10"
-                  >
-                    Admin Dashboard
-                  </Link>
-                )}
-                {user.role === "conducteur" && (
-                  <Link
-                    to="/driver-dashboard"
-                    className="text-white/90 hover:text-white py-2 px-3 rounded-lg hover:bg-white/10"
-                  >
-                    Tableau Conducteur
-                  </Link>
-                )}
-                {user.role === "expediteur" && (
-                  <Link
-                    to="/sender-dashboard"
-                    className="text-white/90 hover:text-white py-2 px-3 rounded-lg hover:bg-white/10"
-                  >
-                    Tableau Expéditeur
-                  </Link>
-                )}
-              </div>
-            )}
+          <div className="flex-shrink-0">
+            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer">
+              Transport
+            </div>
           </div>
 
-          {/* Desktop menu */}
-          <div className="hidden md:flex items-center space-x-4">
-            {user ? (
-              <>
-                <div className="flex items-center space-x-4 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    {user.nom?.charAt(0)}{user.prenom?.charAt(0)}
-                  </div>
-                  <span className="text-white font-medium">
-                    {user.nom} {user.prenom}
-                  </span>
-                </div>
-
-                <Link
-                  to="/profile"
-                  className="text-white/90 hover:text-white px-4 py-2 rounded-lg hover:bg-white/10 transform hover:scale-105"
+          {/* Desktop Navigation */}
+          <div className="hidden md:block">
+            <div className="ml-10 flex items-baseline space-x-1">
+              {[...navItemsCommon,
+                ...(user ? navItemsLoggedIn : navItemsLoggedOut)
+              ].map(({ key, label, icon: Icon, to }) => (
+                <NavLink
+                  key={key}
+                  to={to}
+                  end
+                  className={({ isActive }) =>
+                    `
+                    px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out
+                    flex items-center space-x-2 hover:scale-105 transform
+                    ${isActive
+                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
+                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    }
+                  `
+                  }
                 >
-                  Profil
-                </Link>
+                  <Icon size={16} />
+                  <span>{label}</span>
+                </NavLink>
+              ))}
 
+              {/* Bouton déconnexion si connecté */}
+              {user && (
                 <button
-                  onClick={logout}
-                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-red-300 focus:outline-none"
+                  onClick={handleLogout}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-100 flex items-center space-x-2"
                 >
-                  Déconnexion
+                  <LogOut size={16} />
+                  <span>Déconnexion</span>
                 </button>
-              </>
-            ) : (
-              <div className="flex items-center space-x-3">
-                <Link
-                  to="/login"
-                  className="text-white/90 hover:text-white px-4 py-2 rounded-lg hover:bg-white/10 transform hover:scale-105"
-                >
-                  Connexion
-                </Link>
-                <Link
-                  to="/register"
-                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium border border-white/30 hover:border-white/50"
-                >
-                  Inscription
-                </Link>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
-          {/* Burger menu - Mobile */}
+          {/* Mobile menu button */}
           <div className="md:hidden">
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-white hover:text-green-300 p-2"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-lg text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              aria-label={isMobileMenuOpen ? "Fermer menu" : "Ouvrir menu"}
             >
-              <div className="space-y-1">
-                <div className={`w-6 h-0.5 bg-current transition-all ${isMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></div>
-                <div className={`w-6 h-0.5 bg-current transition-all ${isMenuOpen ? 'opacity-0' : ''}`}></div>
-                <div className={`w-6 h-0.5 bg-current transition-all ${isMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></div>
-              </div>
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile menu */}
-        <div className={`md:hidden transition-all duration-300 ${isMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
-          <div className="py-4 space-y-3 border-t border-white/20">
-            {user && (
-              <>
-                <Link
-                  to="/demandes"
-                  className="block text-white/90 hover:text-white py-2 px-3 rounded-lg hover:bg-white/10"
-                  onClick={() => setIsMenuOpen(false)}
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-100">
+              {[...navItemsCommon,
+                ...(user ? navItemsLoggedIn : navItemsLoggedOut)
+              ].map(({ key, label, icon: Icon, to }) => (
+                <NavLink
+                  key={key}
+                  to={to}
+                  end
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `
+                    w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium
+                    transition-all duration-200 ease-in-out
+                    ${isActive
+                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
+                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    }
+                  `
+                  }
                 >
-                  Mes demandes
-                </Link>
+                  <Icon size={18} />
+                  <span>{label}</span>
+                </NavLink>
+              ))}
 
-                {user.role === "admin" && (
-                  <Link
-                    to="/admin-dashboard"
-                    className="block text-white/90 hover:text-white py-2 px-3 rounded-lg hover:bg-white/10"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Admin Dashboard
-                  </Link>
-                )}
-                {user.role === "conducteur" && (
-                  <Link
-                    to="/driver-dashboard"
-                    className="block text-white/90 hover:text-white py-2 px-3 rounded-lg hover:bg-white/10"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Tableau Conducteur
-                  </Link>
-                )}
-                {user.role === "expediteur" && (
-                  <Link
-                    to="/sender-dashboard"
-                    className="block text-white/90 hover:text-white py-2 px-3 rounded-lg hover:bg-white/10"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Tableau Expéditeur
-                  </Link>
-                )}
-              </>
-            )}
-
-            {user ? (
-              <>
-                <Link
-                  to="/profile"
-                  className="block text-white/90 hover:text-white py-2 px-3 rounded-lg hover:bg-white/10"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Profil
-                </Link>
+              {/* Bouton déconnexion mobile */}
+              {user && (
                 <button
                   onClick={() => {
-                    logout();
-                    setIsMenuOpen(false);
+                    setIsMobileMenuOpen(false);
+                    handleLogout();
                   }}
-                  className="w-full text-left bg-gradient-to-r from-red-600 to-red-700 text-white px-3 py-2 rounded-lg font-medium"
+                  className="w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-100"
                 >
-                  Déconnexion
+                  <LogOut size={18} />
+                  <span>Déconnexion</span>
                 </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="block text-white/90 hover:text-white py-2 px-3 rounded-lg hover:bg-white/10"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Connexion
-                </Link>
-                <Link
-                  to="/register"
-                  className="block bg-white/20 hover:bg-white/30 text-white px-3 py-2 rounded-lg font-medium border border-white/30"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Inscription
-                </Link>
-              </>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </nav>
   );

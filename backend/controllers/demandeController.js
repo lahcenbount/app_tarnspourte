@@ -1,32 +1,38 @@
-const Demande = require('../models/Demande');
+// backend/controllers/demandeController.js
 
-// Créer une demande pour une annonce
-const createDemande = async (req, res, next) => {
+const Demande = require("../models/Demande");
+
+// ✅ Déclaration des fonctions d'abord
+const createDemande = async (req, res) => {
   try {
-    const { annonceId } = req.body;
-    if (!annonceId) {
-      return res.status(400).json({ message: 'Annonce ID requis' });
-    }
-    const demande = await Demande.create({
-      annonce: annonceId,
-      demandeur: req.user._id
+    const { annonce, poids, dimention } = req.body;
+    const demande = new Demande({
+      annonce: annonce,
+      demandeur: req.user.id,
+      poids: poids,
+      dimention: dimention,
     });
-    res.status(201).json(demande);
-  } catch (error) {
-    next(error);
+
+    const saved = await demande.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur lors de la création.", err });
   }
 };
 
-// Lister les demandes d'un utilisateur
-const getDemandesUser = async (req, res, next) => {
+const getDemandesUser = async (req, res) => {
   try {
-    const demandes = await Demande.find({ demandeur: req.user._id })
-      .populate('annonce')
-      .populate('demandeur', 'nom prenom email');
+    const demandes = await Demande.find()
+      .populate("annonce")
+      .populate("demandeur");
+
     res.json(demandes);
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur lors du chargement." });
   }
 };
 
+// ✅ Export correct
 module.exports = { createDemande, getDemandesUser };

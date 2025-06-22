@@ -3,22 +3,48 @@ const Annonce = require('../models/Annonce');
 // Créer une annonce
 const createAnnonce = async (req, res, next) => {
   try {
-    const { titre, description } = req.body;
+    const {
+      depart,
+      arrivee,
+      poids,
+      dimention,
+      heure,
+      prix,
+      description
+    } = req.body;
+
     const annonce = await Annonce.create({
-      titre,
+      depart,
+      arrivee,
+      poids,
+      dimention,
+      heure,
+      prix,
       description,
-      proprietaire: req.user._id
+      expediteurId: req.user._id
     });
+
     res.status(201).json(annonce);
   } catch (error) {
     next(error);
   }
 };
 
-// Lister toutes les annonces
+// Lister toutes les annonces (avec filtrage optionnel par expediteurId)
 const getAnnonces = async (req, res, next) => {
   try {
-    const annonces = await Annonce.find().populate('proprietaire', 'nom prenom email');
+    const { expediteurId } = req.query;
+
+    // Construire un filtre dynamique
+    const filter = {};
+    if (expediteurId) {
+      filter.expediteurId = expediteurId;
+    }
+
+    const annonces = await Annonce.find(filter)
+      .populate('expediteurId', 'nom prenom email')
+      .sort({ createdAt: -1 });
+
     res.json(annonces);
   } catch (error) {
     next(error);
@@ -26,3 +52,4 @@ const getAnnonces = async (req, res, next) => {
 };
 
 module.exports = { createAnnonce, getAnnonces };
+

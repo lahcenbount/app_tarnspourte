@@ -1,4 +1,4 @@
-const API = "http://localhost:5000/api/auth"; 
+const API = "http://127.0.0.1:5000/api/auth"; 
 export async function register(data) {
   const res = await fetch(`${API}/register`, {
     method: "POST",
